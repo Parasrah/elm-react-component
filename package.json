@@ -27,7 +27,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "react-elm-component",
+  "name": "@elm-react/component",
   "author": "parasrah",
   "module": "dist/react-elm-component.esm.js",
   "devDependencies": {
@@ -44,5 +44,10 @@
   "dependencies": {
     "@types/uuid": "^3.4.6",
     "uuid": "^3.4.0"
+  },
+  "jest": {
+    "testMatch": [
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ]
   }
 }

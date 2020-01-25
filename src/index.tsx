@@ -3,7 +3,7 @@ import uuid from 'uuid/v4'
 
 interface Elm {
   Main: {
-    init (args: InitArgs): App
+    init (args: ElmInitArgs): App
   }
 }
 
@@ -16,23 +16,12 @@ interface App {
   }
 }
 
-interface InitArgs {
+interface ElmInitArgs {
   node: React.RefObject<HTMLDivElement>
 }
 
 interface ElmProps {
   [key: string]: any
-}
-
-function logErr (msg: string) {
-  console.error(`react-elm-component: ${msg}`)
-}
-
-function isObject (input: any) : input is object {
-  if (input === null) return false
-  if (typeof input === 'function') return false
-  if (typeof input !== 'object') return false
-  return true
 }
 
 type Listener = (...data: any[]) => void
@@ -49,6 +38,17 @@ interface Instance {
 
 interface Instances {
   [key: string]: Instance
+}
+
+function logErr (msg: string) {
+  console.error(`react-elm-component: ${msg}`)
+}
+
+function isObject (input: any) : input is object {
+  if (input === null) return false
+  if (typeof input === 'function') return false
+  if (typeof input !== 'object') return false
+  return true
 }
 
 const instances: Instances = { }
@@ -152,5 +152,7 @@ function wrap <Props extends ElmProps> (elm: Elm) {
     return <div id={id} ref={node} />
   }
 }
+
+export { Elm, App, ElmInitArgs }
 
 export default wrap
