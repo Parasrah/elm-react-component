@@ -1,4 +1,5 @@
 import * as React from 'react'
+import uuid from 'uuid/v4'
 
 interface Elm {
   Main: {
@@ -34,31 +35,42 @@ function isObject (input: any) : input is object {
   return true
 }
 
-function without <T> (item: T, list: T[]) {
-  return list.filter(i => i !== item)
+type Listener = (...data: any[]) => void
+
+interface Listeners {
+  [key: string]: Listener
 }
 
-type ListEffect <T> = [
-  T[],
-  (item: T) => void,
-  (item: T) => void,
-]
+interface Instance {
+  app: App
+  listeners: Listeners
+  subscriptions: string[]
+}
 
-function listEffect <T> (initial: T[] = []): ListEffect<T> {
-  const [list, setList] = React.useState<T[]>(initial)
+interface Instances {
+  [key: string]: Instance
+}
 
-  function add (item: T) {
-    setList([
-      ...without(item, list),
-      item
-    ])
+const instances: Instances = { }
+
+function addListener(id: string, name: string, listener: Listener) {
+  const instance = instances[id]
+  if (!instance) {
+    // TODO: handle error
+    throw new Error('FIXME')
   }
-
-  function remove (item: T) {
-    setList(without(item, list))
+  instance.listeners[name] = listener
+  if (!instance.subscriptions.includes(name)) {
+    instance.app.ports[name].subscribe((...payload) => {
+      if (instance && instance.listeners[name]) {
+        instance.listeners[name](...payload)
+        instance.subscriptions.push(name)
+      } else {
+        // TODO: handle, should never happen
+        throw new Error('Deal with me')
+      }
+    })
   }
-
-  return [list, add, remove]
 }
 
 function wrap <Props extends ElmProps> (elm: Elm) {
@@ -69,59 +81,71 @@ function wrap <Props extends ElmProps> (elm: Elm) {
     }
 
     const node = React.createRef<HTMLDivElement>()
-    const [firstRun, setFirstRun] = React.useState(true)
-    const [app, setApp] = React.useState<App | undefined>(undefined)
-    const [propList, addProp, removeProp] = listEffect<string>(Object.keys(props))
-    const [subs, addSub, removeSub] = listEffect<string>()
+    // can optimize this later
+    const [id] = React.useState(uuid())
 
-    // ensure we maintain a correct list of prop keys
-    const currPropList = Object.keys(props)
-    currPropList.forEach(key => {
-      if (!propList.includes(key)) {
-        addProp(key)
-      }
-    })
-    propList.forEach(key => {
-      if (!currPropList.includes(key)) {
-        removeProp(key)
-      }
-    })
+    // handle if elm has been initialized already (not first run)
+    if (instances[id]) {
+      const propKeys = Object.keys(props)
+      const instance = instances[id]
+      // send data to elm instance
+      // TODO: only do this when prop value changes? avoid overhead of interop?
+      Object
+        .keys(props)
+        .filter(key => typeof props[key] !== 'function')
+        .forEach(key => {
+          instances[id].app.ports[key].send(props[key])
+        })
 
-    // TODO: what if the function for a prop changes? seems obvious we need some form of store
-    // for listeners. Can we use functions in useState though?
+      Object
+        .keys(props)
+        .filter(key => typeof props[key] === 'function')
+        .forEach(key => {
+          addListener(id, key, props[key])
+        })
 
-    // TODO: what if we moved it ALL into the useEffect and had it run every single update?
-    // that would guarantee the order, and that the component is mounted
+
+      // fix subscription list
+      const { listeners } = instance
+      const subKeys = Object.keys(listeners)
+      subKeys.forEach(key => {
+        if (typeof props[key] !== 'function') {
+          delete listeners[key]
+        }
+      })
+      propKeys.forEach(key => {
+        if (typeof listeners[key] !== 'function') {
+          listeners[key] = props[key]
+        }
+      })
+    }
 
     React.useEffect(() => {
-      const app = elm.Main.init({
-        node,
-      })
+      // should only run once, setup instance
+      instances[id] = (() => {
+        const app = elm.Main.init({
+          node,
+        })
 
-      // setup listeners
+        return {
+          app,
+          listeners: {},
+          subscriptions: [],
+        }
+      })()
+
+      // setup inital ports
       Object.keys(props).forEach(key => {
         if (typeof props[key] === 'function') {
-          // this is an "outgoing" port from elm's perspective
-          app.ports[key].subscribe((data: any) => {
-            // I can't access subs here because it has a closure over an
-            // old reference here
-            // I need to check if this exists in subs anymore
-            // before attempting to call the function
-            // like: props[key](data)
-            // can't I just check if props[key] is still a function?
-            // of course it is, I still have a reference to the old props
-            // I don't want to store functions in useState, because I'm not
-            // sure that is supported or will be supported in the future
-          })
-          addSub(key)
+          addListener(id, key, props[key])
         } else {
-          // this is an "incoming" port from elm's perspective
-          app.ports[key].send(props[key])
+          instances[id].app.ports[key].send(props[key])
         }
       })
 
       return () => {
-        // TODO: have to unsubscribe ports?
+        // cleanup instance
+        delete instances[id]
       }
     }, [])
 
