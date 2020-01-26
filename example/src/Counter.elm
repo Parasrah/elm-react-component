@@ -1,4 +1,4 @@
-port module Counter exposing (Model, Msg(..), className, onChange, update, value, view)
+port module Counter exposing (main)
 
 import Browser
 import Html exposing (Html, button, div, text)
@@ -11,13 +11,13 @@ import Json.Encode as E
 -- Ports (interop with props)
 
 
-port className : (String -> Msg) -> Sub Msg
+port className : (String -> msg) -> Sub msg
 
 
-port onChange : Int -> Cmd msg
+port value : (Int -> msg) -> Sub msg
 
 
-port value : Int -> Msg
+port onValueChange : Int -> Cmd msg
 
 
 
@@ -26,14 +26,18 @@ port value : Int -> Msg
 
 type alias Model =
     { class : String
-    , value : String
+    , value : Int
     }
 
 
-init : flags -> ( Model, Cmd Msg )
+type alias Flags =
+    {}
+
+
+init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { class = ""
-      , value = ""
+      , value = 0
       }
     , Cmd.none
     )
@@ -51,14 +55,23 @@ type Msg
 
 
 
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
+
+
+
 -- Update
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        IncomingClass class ->
-            ( { model | class = class }
+        IncomingClass updatesClass ->
+            ( { model | class = updatesClass }
             , Cmd.none
             )
 
@@ -69,12 +82,12 @@ update msg model =
 
         Increment ->
             ( model
-            , onChange + 1
+            , onValueChange 1
             )
 
         Decrement ->
             ( model
-            , onChange -1
+            , onValueChange -1
             )
 
 
@@ -82,25 +95,25 @@ update msg model =
 -- View
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     div
         [ class model.class ]
         [ button
             [ onClick Decrement ]
             [ text "-" ]
-        , text model.value
+        , text <| String.fromInt model.value
         , button
             [ onClick Increment ]
             [ text "+" ]
         ]
 
 
-main : Program flags Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { view = view
         , update = update
         , init = init
-        , subscriptions = Sub.none
+        , subscriptions = subscriptions
         }

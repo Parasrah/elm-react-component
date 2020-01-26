@@ -14,9 +14,7 @@
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "prepare": "tsdx build"
   },
-  "peerDependencies": {
-    "react": ">=16"
-  },
+  "peerDependencies": {},
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint"
