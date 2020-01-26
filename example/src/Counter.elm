@@ -17,7 +17,7 @@ port className : (String -> msg) -> Sub msg
 port value : (Int -> msg) -> Sub msg
 
 
-port onValueChange : Int -> Cmd msg
+port onChange : Int -> Cmd msg
 
 
 
@@ -60,7 +60,10 @@ type Msg
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Sub.batch
+        [ className IncomingClass
+        , value IncomingValue
+        ]
 
 
 
@@ -82,12 +85,12 @@ update msg model =
 
         Increment ->
             ( model
-            , onValueChange 1
+            , onChange 1
             )
 
         Decrement ->
             ( model
-            , onValueChange -1
+            , onChange -1
             )
 
 

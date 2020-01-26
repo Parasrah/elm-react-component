@@ -24,7 +24,7 @@ interface App {
 }
 
 interface ElmInitArgs {
-  node: React.RefObject<HTMLDivElement>
+  node: HTMLDivElement
 }
 
 interface ElmProps {
@@ -37,17 +37,10 @@ interface Listeners {
   [key: string]: Listener
 }
 
-interface QueuedPayload {
-  name: string
-  payload: any
-  count: number
-}
-
 interface Instance {
   app: App
   listeners: Listeners
   subscriptions: string[]
-  queue: QueuedPayload[]
   timing: number
 }
 
@@ -110,54 +103,13 @@ function addListener (id: string, name: string, listener: Listener) {
   }
 }
 
-function createFreshQueuedPayload (name: string, payload: any): QueuedPayload {
-  return {
-    name,
-    payload,
-    count: 0,
-  }
-}
-
 function sendData (id: string, name: string, payload: any) {
   const instance = getInstance(id)
-  if (instance.queue.length) {
-    instance.queue = [...instance.queue, createFreshQueuedPayload(name, payload)]
-    handleQueue(id)
-  }
-  else if (!instance.app.ports[name]) {
-    instance.queue = [...instance.queue, createFreshQueuedPayload(name, payload)]
-    setTimeout(handleQueueCallback(id), instance.timing)
+  if (!instance.app.ports[name]) {
+    console.error(`no such incoming port: ${name}`)
   } else {
     instance.app.ports[name].send(payload)
   }
-}
-
-function handleQueue (id: string) {
-  if (hasInstance(id)) {
-    const instance = getInstance(id)
-    instance.queue = instance.queue.reduce((aggregate: QueuedPayload[], curr: QueuedPayload) => {
-      const { name, payload } = curr
-      try {
-        instance.app.ports[name].send(payload)
-      } catch (err) {
-        if (curr.count > 100) {
-          // log missing port and drop from queue
-          console.error(`no such incoming port exists: ${name}`)
-          return aggregate
-        }
-        return [...aggregate, { ...curr, count: curr.count + 1 }]
-      }
-      return aggregate
-    }, [])
-    // deal with remaining items later
-    if (instance.queue.length) {
-      setTimeout(handleQueueCallback(id), instance.timing)
-    }
-  }
-}
-
-function handleQueueCallback (id: string) {
-  return () => handleQueue(id);
 }
 
 function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
@@ -166,7 +118,6 @@ function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
       logErr(`props must be of type "object", not ${typeof props}`)
     }
 
-    const node = React.createRef<HTMLDivElement>()
     // can optimize this later
     const [id] = React.useState(uuid())
 
@@ -213,15 +164,17 @@ function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
     React.useEffect(() => {
       // should only run once, setup instance
       instances[id] = (() => {
+        const consumed = document.createElement('div')
+        document.getElementById(id)?.appendChild(consumed)
+
         const app = elm.Elm[opts.name || getFirstPropName(elm.Elm)].init({
-          node,
+          node: consumed,
         })
 
         return {
           app,
           listeners: {},
           subscriptions: [],
-          queue: [],
           timing: 5
         }
       })()
@@ -241,7 +194,7 @@ function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
       }
     }, [])
 
-    return <div id={id} ref={node} />
+    return <div id={id} />
   }
 }
 

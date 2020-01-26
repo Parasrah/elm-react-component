@@ -5,7 +5,6 @@ import Counter from './Counter'
 function App() {
   const [count, setCount] = useState(0)
 
-  // TODO: how to avoid redeclaring fn every render?
   return (
     <div className="App">
       <Counter
