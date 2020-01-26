@@ -1,4 +1,5 @@
 {
+  "name": "@elm-react/component",
   "version": "0.1.0",
   "license": "MIT",
   "main": "dist/index.js",
@@ -10,7 +11,7 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test --passWithNoTests",
-    "lint": "tsdx lint",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "prepare": "tsdx build"
   },
   "peerDependencies": {
@@ -27,13 +28,21 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "@elm-react/component",
   "author": "parasrah",
   "module": "dist/react-elm-component.esm.js",
   "devDependencies": {
     "@types/jest": "^24.9.1",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
+    "@typescript-eslint/eslint-plugin": "^2.17.0",
+    "@typescript-eslint/parser": "^2.17.0",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.18.0",
+    "eslint-plugin-standard": "^4.0.1",
     "husky": "^4.2.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",

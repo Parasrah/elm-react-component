@@ -84,42 +84,47 @@ function wrap <Props extends ElmProps> (elm: Elm) {
     // can optimize this later
     const [id] = React.useState(uuid())
 
-    // handle if elm has been initialized already (not first run)
-    if (instances[id]) {
-      const propKeys = Object.keys(props)
-      const instance = instances[id]
-      // send data to elm instance
-      // TODO: only do this when prop value changes? avoid overhead of interop?
-      Object
-        .keys(props)
-        .filter(key => typeof props[key] !== 'function')
-        .forEach(key => {
-          instances[id].app.ports[key].send(props[key])
+    // on update
+    React.useEffect(() => {
+      // handle if elm has been initialized already (not first run)
+      if (instances[id]) {
+        const instance = instances[id]
+        const propKeys = Object.keys(props)
+
+        // send props data to elm instance
+        propKeys
+          .filter(key => typeof props[key] !== 'function')
+          .forEach(key => {
+            instances[id].app.ports[key].send(props[key])
+          })
+
+        // setup listeners from props
+        propKeys
+          .filter(key => typeof props[key] === 'function')
+          .forEach(key => {
+            addListener(id, key, props[key])
+          })
+
+
+        // fix listeners
+        const { listeners } = instance
+        const listenerKeys = Object.keys(listeners)
+        // clean up props changing types (function -> !function)
+        listenerKeys.forEach(propKey => {
+          if (typeof props[propKey] !== 'function') {
+            delete listeners[propKey]
+          }
         })
-
-      Object
-        .keys(props)
-        .filter(key => typeof props[key] === 'function')
-        .forEach(key => {
-          addListener(id, key, props[key])
+        // clean up props changing types (function -> undefined)
+        listenerKeys.forEach(listenerKey => {
+          if (!propKeys.includes(listenerKey)) {
+            delete listeners[listenerKey]
+          }
         })
+      }
+    });
 
-
-      // fix subscription list
-      const { listeners } = instance
-      const subKeys = Object.keys(listeners)
-      subKeys.forEach(key => {
-        if (typeof props[key] !== 'function') {
-          delete listeners[key]
-        }
-      })
-      propKeys.forEach(key => {
-        if (typeof listeners[key] !== 'function') {
-          listeners[key] = props[key]
-        }
-      })
-    }
-
+    // mount & cleanup
     React.useEffect(() => {
       // should only run once, setup instance
       instances[id] = (() => {
