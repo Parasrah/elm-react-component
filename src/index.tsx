@@ -53,7 +53,7 @@ function isObject (input: any) : input is object {
 
 const instances: Instances = { }
 
-function addListener(id: string, name: string, listener: Listener) {
+function addListener (id: string, name: string, listener: Listener) {
   const instance = instances[id]
   if (!instance) {
     // TODO: handle error
@@ -74,7 +74,6 @@ function addListener(id: string, name: string, listener: Listener) {
 }
 
 function wrap <Props extends ElmProps> (elm: Elm) {
-
   return function (props: Props) {
     if (!isObject(props)) {
       logErr(`props must be of type "object", not ${typeof props}`)
@@ -105,7 +104,6 @@ function wrap <Props extends ElmProps> (elm: Elm) {
             addListener(id, key, props[key])
           })
 
-
         // fix listeners
         const { listeners } = instance
         const listenerKeys = Object.keys(listeners)
@@ -122,7 +120,7 @@ function wrap <Props extends ElmProps> (elm: Elm) {
           }
         })
       }
-    });
+    })
 
     // mount & cleanup
     React.useEffect(() => {

@@ -8,7 +8,7 @@ interface MockInit {
 }
 
 interface Mock extends Elm {
-
+  getRef (): React.RefObject<HTMLDivElement> | undefined
 }
 
 function createMock ({ incoming, outgoing }: MockInit): Mock {
@@ -23,23 +23,24 @@ function createMock ({ incoming, outgoing }: MockInit): Mock {
             get (_, key: string, __) {
               if (incoming.includes(key)) {
                 return {
-                  send: jest.fn()
+                  send: jest.fn(),
                 }
               } else if (outgoing.includes(key)) {
                 return {
-                  subscribe: jest.fn()
+                  subscribe: jest.fn(),
                 }
               } else {
                 throw new Error(`there is no existing port for ${key}`)
               }
             },
-          })
+          }),
         }
-      }
-    }
+      },
+    },
+    getRef () { return ref },
   }
 }
 
-export { Mock }
+export { Mock, MockInit }
 
 export default createMock

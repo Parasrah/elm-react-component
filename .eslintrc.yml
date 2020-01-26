@@ -1,8 +1,10 @@
 env:
   browser: true
   es6: true
+  jest: true
 extends:
   - 'plugin:react/recommended'
+  - 'plugin:import/typescript'
   - standard
 globals:
   Atomics: readonly
@@ -17,5 +19,7 @@ plugins:
   - react
   - '@typescript-eslint'
 rules: {
-  "comma-dangle": ["error", "always-multiline"]
+  "comma-dangle": ["error", "always-multiline"],
+  "no-undef": "off",
+  "no-unused-vars": "off"
 }
