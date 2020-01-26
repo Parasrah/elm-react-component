@@ -2,9 +2,16 @@ import * as React from 'react'
 import uuid from 'uuid/v4'
 
 interface Elm {
-  Main: {
-    init (args: ElmInitArgs): App
+  Elm: {
+    [key: string]: {
+      init (args: ElmInitArgs): App
+    }
   }
+}
+
+interface Options {
+  /** the name of the elm module, shouldn't be necessary */
+  name?: string
 }
 
 interface App {
@@ -17,7 +24,7 @@ interface App {
 }
 
 interface ElmInitArgs {
-  node: React.RefObject<HTMLDivElement>
+  node: HTMLDivElement
 }
 
 interface ElmProps {
@@ -34,6 +41,7 @@ interface Instance {
   app: App
   listeners: Listeners
   subscriptions: string[]
+  timing: number
 }
 
 interface Instances {
@@ -51,13 +59,35 @@ function isObject (input: any) : input is object {
   return true
 }
 
+function getFirstPropName (obj: Object): string {
+  const keys = Object.keys(obj)
+  if (!keys.length) {
+    // TODO: Add error specifying to look at docs for Options#name
+    throw new Error('bad error')
+  }
+  return keys[0]
+}
+
 const instances: Instances = { }
 
-function addListener (id: string, name: string, listener: Listener) {
+function hasInstance (id: string) {
+  return instances[id] !== undefined
+}
+
+function getInstance (id: string) {
   const instance = instances[id]
   if (!instance) {
     // TODO: handle error
     throw new Error('FIXME')
+  }
+  return instance
+}
+
+function addListener (id: string, name: string, listener: Listener) {
+  const instance = getInstance(id)
+  if (!instance.app.ports[name]) {
+    console.error(`no such outgoing port: ${name}`)
+    return
   }
   instance.listeners[name] = listener
   if (!instance.subscriptions.includes(name)) {
@@ -73,20 +103,28 @@ function addListener (id: string, name: string, listener: Listener) {
   }
 }
 
-function wrap <Props extends ElmProps> (elm: Elm) {
+function sendData (id: string, name: string, payload: any) {
+  const instance = getInstance(id)
+  if (!instance.app.ports[name]) {
+    console.error(`no such incoming port: ${name}`)
+  } else {
+    instance.app.ports[name].send(payload)
+  }
+}
+
+function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
   return function (props: Props) {
     if (!isObject(props)) {
       logErr(`props must be of type "object", not ${typeof props}`)
     }
 
-    const node = React.createRef<HTMLDivElement>()
     // can optimize this later
     const [id] = React.useState(uuid())
 
     // on update
     React.useEffect(() => {
       // handle if elm has been initialized already (not first run)
-      if (instances[id]) {
+      if (hasInstance(id)) {
         const instance = instances[id]
         const propKeys = Object.keys(props)
 
@@ -126,14 +164,18 @@ function wrap <Props extends ElmProps> (elm: Elm) {
     React.useEffect(() => {
       // should only run once, setup instance
       instances[id] = (() => {
-        const app = elm.Main.init({
-          node,
+        const consumed = document.createElement('div')
+        document.getElementById(id)?.appendChild(consumed)
+
+        const app = elm.Elm[opts.name || getFirstPropName(elm.Elm)].init({
+          node: consumed,
         })
 
         return {
           app,
           listeners: {},
           subscriptions: [],
+          timing: 5,
         }
       })()
 
@@ -142,7 +184,7 @@ function wrap <Props extends ElmProps> (elm: Elm) {
         if (typeof props[key] === 'function') {
           addListener(id, key, props[key])
         } else {
-          instances[id].app.ports[key].send(props[key])
+          sendData(id, key, props[key])
         }
       })
 
@@ -152,7 +194,7 @@ function wrap <Props extends ElmProps> (elm: Elm) {
       }
     }, [])
 
-    return <div id={id} ref={node} />
+    return <div id={id} />
   }
 }
 

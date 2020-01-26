@@ -17,20 +17,10 @@
   "peerDependencies": {
     "react": ">=16"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
   "author": "parasrah",
   "module": "dist/react-elm-component.esm.js",
   "devDependencies": {
+    "@types/uuid": "^3.4.6",
     "@types/enzyme": "^3.10.4",
     "@types/enzyme-adapter-react-16": "^1.0.5",
     "@types/jest": "^24.9.1",
@@ -48,7 +38,6 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.18.0",
     "eslint-plugin-standard": "^4.0.1",
-    "husky": "^4.2.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-test-renderer": "^16.12.0",
@@ -57,7 +46,6 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@types/uuid": "^3.4.6",
     "uuid": "^3.4.0"
   },
   "jest": {
