@@ -70,11 +70,11 @@ function getFirstPropName (obj: Object): string {
 
 const instances: Instances = { }
 
-function hasInstance(id: string) {
+function hasInstance (id: string) {
   return instances[id] !== undefined
 }
 
-function getInstance(id: string) {
+function getInstance (id: string) {
   const instance = instances[id]
   if (!instance) {
     // TODO: handle error
@@ -175,7 +175,7 @@ function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
           app,
           listeners: {},
           subscriptions: [],
-          timing: 5
+          timing: 5,
         }
       })()
 
@@ -198,6 +198,6 @@ function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
   }
 }
 
-export { Elm, App, ElmInitArgs, React }
+export { Elm, App, ElmInitArgs }
 
 export default wrap
