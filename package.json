@@ -14,10 +14,13 @@
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "prepare": "tsdx build"
   },
-  "peerDependencies": {},
+  "peerDependencies": {
+    "react": ">=16"
+  },
   "author": "parasrah",
   "module": "dist/react-elm-component.esm.js",
   "devDependencies": {
+    "@types/uuid": "^3.4.6",
     "@types/enzyme": "^3.10.4",
     "@types/enzyme-adapter-react-16": "^1.0.5",
     "@types/jest": "^24.9.1",
@@ -43,7 +46,6 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@types/uuid": "^3.4.6",
     "uuid": "^3.4.0"
   },
   "jest": {

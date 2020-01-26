@@ -1,1 +1,3 @@
 example/
+node_modules/
+shell.nix
