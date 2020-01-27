@@ -10,7 +10,7 @@ first up, install [@rescripts/cli](https://github.com/harrysolovay/rescripts), [
 
 update your `package.json`:
 
-```json
+```diff
 
   "scripts": {
 -   "start": "react-scripts start",
