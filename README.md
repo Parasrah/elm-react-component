@@ -1,116 +1,65 @@
-# react-elm-component
+# @elm-react/component
 
-## install
+A library to support interop between React & Elm, using a pattern that fits both languages! Use props & ports seamlessly, see it in action:
 
-`npm i -S react-elm-component`
 
-## api
+```javascript
 
-The following is an example of an uncontrolled counter component. Yes, it's a lot of boilerplate for something so simple, but it's a great way of testing out Elm without going all in.
+// Counter.jsx
+
+import wrap from '@elm-react/component'
+
+import Counter from './Counter.elm'
+
+export default wrap(Counter)
+
+```
 
 ```elm
--- src/Counter.elm
 
-port module Button
+-- Counter.elm (just ports)
 
-import Json.Encode as E
+port className : (String -> msg) -> Sub msg
 
--- Ports (interop with props)
 
-port className : (String -> IncomingClass) -> Sub IncomingClass
+port value : (Int -> msg) -> Sub msg
+
 
 port onChange : Int -> Cmd msg
 
-port value : (Int -> IncomingValue)
-
-
--- Model
-
-type alias Model =
-  { class : String
-  , value : String
-  }
-
-
--- Msg
-
-type Msg
-  = IncomingClass String
-  | IncomingValue Int
-  | Increment
-  | Decrement
-
-
--- Update
-
-update : Msg -> Model -> Model
-update msg model =
-  case msg of
-    IncomingClass class ->
-      ( { model | class = class }
-      , Cmd.none
-      )
-
-    IncomingValue value ->
-      ( { model | value = value }
-      , Cmd.none
-      )
-
-    Increment ->
-      ( model
-      , onChange +1
-      )
-
-    Decrement ->
-      ( model
-      , onChange -1
-      )
-      
-
--- View
-
-view : Model -> Html msg
-view model =
-  div
-    [ class model.class ]
-    [ button
-      [ onClick Decrement ]
-      [ text "-" ]
-    , text model.value
-    , button
-      [ onClick Increment ]
-      [ text "+" ]
-    ]
-
 ```
 
-```typescriptreact
-// src/counter.tsx
+```javascript
 
-import wrap from 'react-elm-component'
-import Input from './Input.elm'
+// App.jsx
 
-interface Props {
-  value: int
-  className: string
-  onChange: (int: string) => void
-}
+import React, { useState } from 'react';
 
-export default wrap<Props>(Button)
-```
+import Counter from './Counter'
 
-```typescriptreact
-// src/index.tsx
-
-import Counter from './Counter.tsx'
-
-export default function () {
+function App() {
   const [count, setCount] = useState(0)
 
-  return <Counter
-    value={count}
-    className="my-elm-component"
-    onChange={(change: int) => setCount(count + change)}
-  >
+  return (
+    <div className="App">
+      <Counter
+        className="counter"
+        value={count}
+        onChange={(change) => setCount(count + change)}
+      />
+    </div>
+  );
 }
+
+export default App;
+
 ```
+
+You can see the full example at [/example](https://github.com/Parasrah/elm-react-component/tree/master/example)
+
+Be sure to check out the [Elm guide](https://guide.elm-lang.org/) if you're new to Elm!
+
+## create-react-app
+
+Many users might not have full control over their webpack config. [The example](https://github.com/Parasrah/elm-react-component/tree/master/example) includes how to get this library working
+with Create React App using [@rescripts](https://github.com/harrysolovay/rescripts).
