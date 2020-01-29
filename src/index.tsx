@@ -1,17 +1,28 @@
+/*
+ * TODO: clean up subscriptions
+ * TODO: make logic simpler
+*/
+
 import * as React from 'react'
-import uuid from 'uuid/v4'
+import uuid from 'uuid/v1'
+
+import errors from './errors'
 
 interface Elm {
-  Elm: {
-    [key: string]: {
-      init (args: ElmInitArgs): App
-    }
-  }
+  Elm: ElmStep
+}
+
+interface ElmStep {
+  [key: string]: ElmStep | ElmModule
+}
+
+interface ElmModule {
+  init (args: ElmInitArgs): App
 }
 
 interface Options {
   /** the name of the elm module, shouldn't be necessary */
-  name?: string
+  path?: string[]
 }
 
 interface App {
@@ -25,10 +36,6 @@ interface App {
 
 interface ElmInitArgs {
   node: HTMLDivElement
-}
-
-interface ElmProps {
-  [key: string]: any
 }
 
 type Listener = (...data: any[]) => void
@@ -48,10 +55,6 @@ interface Instances {
   [key: string]: Instance
 }
 
-function logErr (msg: string) {
-  console.error(`react-elm-component: ${msg}`)
-}
-
 function isObject (input: any) : input is object {
   if (input === null) return false
   if (typeof input === 'function') return false
@@ -59,13 +62,38 @@ function isObject (input: any) : input is object {
   return true
 }
 
-function getFirstPropName (obj: Object): string {
-  const keys = Object.keys(obj)
-  if (!keys.length) {
-    // TODO: Add error specifying to look at docs for Options#name
-    throw new Error('bad error')
-  }
-  return keys[0]
+function getOnlyValue (obj: ElmStep): ElmStep | ElmModule | false {
+  const values = Object.values(obj)
+  if (values.length > 1) { return false }
+  if (values.length < 1) { return false }
+  return values[0]
+}
+
+function isElmModule (test: ElmModule | ElmStep): test is ElmModule {
+  if (test === null) { return false }
+  if (typeof test !== 'object') { return false }
+  if (typeof test.init !== 'function') { return false }
+  return true
+}
+
+function getOnlyModule (step: ElmStep | ElmModule): ElmModule | false {
+  if (isElmModule(step)) { return step }
+  const deeper = getOnlyValue(step)
+  if (!deeper) { return false }
+  // wouldn't tail call optimization be nice :P
+  return getOnlyModule(deeper)
+}
+
+function isElm (test: any): test is Elm {
+  if (test === null) { return false }
+  if (typeof test !== 'object') { return false }
+  if (test.Elm === null) { return false }
+  if (typeof test.Elm !== 'object') { return false }
+  return true
+}
+
+function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
+  // TODO: finish
 }
 
 const instances: Instances = { }
@@ -112,13 +140,15 @@ function sendData (id: string, name: string, payload: any) {
   }
 }
 
-function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
+function wrap <Props extends object> (elm: Elm, opts: Options = {}) {
   return function (props: Props) {
     if (!isObject(props)) {
       logErr(`props must be of type "object", not ${typeof props}`)
     }
 
-    // can optimize this later
+    const node = React.createRef<HTMLInputElement>()
+
+    // v1 is based on timestamp, 1 microsecond cost (negligible)
     const [id] = React.useState(uuid())
 
     // on update
@@ -165,9 +195,28 @@ function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
       // should only run once, setup instance
       instances[id] = (() => {
         const consumed = document.createElement('div')
-        document.getElementById(id)?.appendChild(consumed)
+        if (!node.current) {
+          throw new Error(errors.missingRef)
+        }
+        node.current.appendChild(consumed)
 
-        const app = elm.Elm[opts.name || getFirstPropName(elm.Elm)].init({
+        if (!isElm(elm)) {
+          throw new Error(errors.invalidElmInstance)
+        }
+
+        const elmModule = (() => {
+          let resolved = resolvePath(opts.path, elm.Elm)
+          if (resolved) { return resolved }
+          resolved = getOnlyModule(elm.Elm)
+          if (resolved) { return resolved }
+          if (opts.path) {
+            throw new Error(errors.invalidPath)
+          } else {
+            throw new Error(errors.invalidElmInstance)
+          }
+        })()
+
+        const app = elmModule.init({
           node: consumed,
         })
 
@@ -194,7 +243,7 @@ function wrap <Props extends ElmProps> (elm: Elm, opts: Options = {}) {
       }
     }, [])
 
-    return <div id={id} />
+    return <div ref={node} />
   }
 }
 
