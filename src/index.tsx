@@ -1,19 +1,15 @@
-/*
- * TODO: clean up subscriptions
- * TODO: make logic simpler
-*/
-
 import * as React from 'react'
-import uuid from 'uuid/v1'
 
 import errors from './errors'
+
+/* ----------------- Types ----------------- */
 
 interface Elm {
   Elm: ElmStep
 }
 
 interface ElmStep {
-  [key: string]: ElmStep | ElmModule
+  [key: string]: ElmStep | ElmModule | undefined
 }
 
 interface ElmModule {
@@ -28,8 +24,9 @@ interface Options {
 interface App {
   ports: {
     [key: string]: {
-      subscribe (fn: (data: any) => void): void
-      send (data: any): void
+      subscribe? (fn: (data: any) => void): void
+      unsubscribe? (fn: (data: any) => void): void
+      send? (data: any): void
     }
   }
 }
@@ -47,41 +44,41 @@ interface Listeners {
 interface Instance {
   app: App
   listeners: Listeners
-  subscriptions: string[]
   timing: number
 }
 
-interface Instances {
-  [key: string]: Instance
+interface Closure {
+  sendData (name: string, payload: any): void
+  addListener (name: string, listener: Listener): void
+  clean (currentProps: string[]): void
 }
 
-function isObject (input: any) : input is object {
-  if (input === null) return false
-  if (typeof input === 'function') return false
-  if (typeof input !== 'object') return false
+interface PropTypes {
+  [key: string]: any
+}
+
+type Instances = Instance[]
+
+/* -------------- Type Guards -------------- */
+
+function isObject (test: any) : test is object {
+  if (test === null) return false
+  if (typeof test === 'function') return false
+  if (typeof test !== 'object') return false
   return true
 }
 
-function getOnlyValue (obj: ElmStep): ElmStep | ElmModule | false {
-  const values = Object.values(obj)
-  if (values.length > 1) { return false }
-  if (values.length < 1) { return false }
-  return values[0]
-}
-
-function isElmModule (test: ElmModule | ElmStep): test is ElmModule {
+function isElmStep (test: any, key?: string): test is ElmStep {
+  if (typeof test === 'undefined') { return false }
   if (test === null) { return false }
   if (typeof test !== 'object') { return false }
-  if (typeof test.init !== 'function') { return false }
+  if (key === '') { return false }
+  if (key) {
+    const value = test[key]
+    return isElmStep(value) || isElmModule(value)
+  }
+  if (!Object.keys(test).length) { return false }
   return true
-}
-
-function getOnlyModule (step: ElmStep | ElmModule): ElmModule | false {
-  if (isElmModule(step)) { return step }
-  const deeper = getOnlyValue(step)
-  if (!deeper) { return false }
-  // wouldn't tail call optimization be nice :P
-  return getOnlyModule(deeper)
 }
 
 function isElm (test: any): test is Elm {
@@ -92,154 +89,194 @@ function isElm (test: any): test is Elm {
   return true
 }
 
-function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
-  // TODO: finish
+function isElmModule (test: ElmModule | ElmStep): test is ElmModule {
+  if (test === null) { return false }
+  if (typeof test !== 'object') { return false }
+  if (typeof test.init !== 'function') { return false }
+  return true
 }
+/* ----------------- State ----------------- */
 
-const instances: Instances = { }
+const {
+  getClosure,
+  createInstance,
+  hasInstance,
+  getId,
+  teardown,
+} = (() => {
+  let currentId = 1
+  const instances: Instances = []
 
-function hasInstance (id: string) {
-  return instances[id] !== undefined
-}
-
-function getInstance (id: string) {
-  const instance = instances[id]
-  if (!instance) {
-    // TODO: handle error
-    throw new Error('FIXME')
+  function createClosure ({ listeners, app }: Instance): Closure {
+    return {
+      sendData (name: string, payload: any) {
+        if (!app.ports[name]) {
+          console.error(errors.missingPort(name))
+        } else {
+          if (listeners[name]) {
+            // we know this exists, because it was subscribed
+            app.ports[name].unsubscribe!(listeners[name])
+            delete listeners[name]
+          }
+          if (app.ports[name]?.send) {
+            // we just proved this exists
+            app.ports[name].send!(payload)
+          } else {
+            console.error(errors.missingPort(name))
+          }
+        }
+      },
+      addListener (name: string, listener: Listener) {
+        if (!app.ports[name]?.subscribe) {
+          console.error(errors.missingPort(name))
+        } else {
+          if (listeners[name]) {
+            // we know this exists because it was subscribed
+            app.ports[name].unsubscribe!(listeners[name])
+          }
+          // we know this exists because we did type check above
+          app.ports[name].subscribe!(listener)
+          listeners[name] = listener
+        }
+      },
+      clean (currentProps: string[]) {
+        Object.keys(listeners).forEach(name => {
+          if (!currentProps.includes(name)) {
+            // we know this exists because we subscribed
+            app.ports[name].unsubscribe!(listeners[name])
+          }
+        })
+      },
+    }
   }
-  return instance
-}
 
-function addListener (id: string, name: string, listener: Listener) {
-  const instance = getInstance(id)
-  if (!instance.app.ports[name]) {
-    console.error(`no such outgoing port: ${name}`)
-    return
-  }
-  instance.listeners[name] = listener
-  if (!instance.subscriptions.includes(name)) {
-    instance.app.ports[name].subscribe((...payload) => {
-      if (instance && instance.listeners[name]) {
-        instance.listeners[name](...payload)
-        instance.subscriptions.push(name)
-      } else {
-        // TODO: handle, should never happen
-        throw new Error('Deal with me')
+  return {
+    getClosure (key: number) {
+      return createClosure(instances[key])
+    },
+    createInstance (id: number, app: App) {
+      const instance = {
+        app,
+        listeners: {},
+        subscriptions: [],
+        timing: 5,
       }
-    })
+      instances[id] = instance
+
+      return instance
+    },
+    hasInstance (key: number) {
+      return !!instances[key]
+    },
+    getId () {
+      return ++currentId
+    },
+    teardown (id: number) {
+      const { listeners, app } = instances[id]
+      Object.keys(listeners).forEach(name => {
+        // we know this exists because it was subscribed
+        app.ports[name].unsubscribe!(listeners[name])
+      })
+    },
   }
+})()
+
+/* -------------- Utilities -------------- */
+
+function getOnlyValue (obj: ElmStep): ElmStep | ElmModule | false {
+  const values = Object.values(obj)
+  if (values.length > 1) { return false }
+  if (values.length < 1) { return false }
+  return values[0] || false
 }
 
-function sendData (id: string, name: string, payload: any) {
-  const instance = getInstance(id)
-  if (!instance.app.ports[name]) {
-    console.error(`no such incoming port: ${name}`)
-  } else {
-    instance.app.ports[name].send(payload)
-  }
+function getOnlyModule (step: ElmStep | ElmModule): ElmModule | false {
+  if (isElmModule(step)) { return step }
+  const deeper = getOnlyValue(step)
+  if (!deeper) { return false }
+  // wouldn't tail call optimization be nice :P
+  return getOnlyModule(deeper)
 }
 
-function wrap <Props extends object> (elm: Elm, opts: Options = {}) {
+function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
+  const resolve = (path: string[], step: ElmStep | ElmModule): false | ElmModule => {
+    if (path.length === 0 && isElmModule(step)) {
+      return step
+    }
+    if (path.length === 0 || typeof step === 'undefined') {
+      return false
+    }
+    const [key, ...rest] = path
+    if (!isElmStep(step, key)) {
+      return false
+    }
+    return resolve(rest, (step[key] as ElmModule | ElmStep))
+  }
+  return resolve(path, step)
+}
+
+function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
   return function (props: Props) {
     if (!isObject(props)) {
-      logErr(`props must be of type "object", not ${typeof props}`)
+      throw new Error(`props must be of type "object", not ${typeof props}`)
     }
 
+    const [id] = React.useState(getId())
     const node = React.createRef<HTMLInputElement>()
-
-    // v1 is based on timestamp, 1 microsecond cost (negligible)
-    const [id] = React.useState(uuid())
 
     // on update
     React.useEffect(() => {
       // handle if elm has been initialized already (not first run)
       if (hasInstance(id)) {
-        const instance = instances[id]
+        const { addListener, sendData, clean } = getClosure(id)
         const propKeys = Object.keys(props)
 
         // send props data to elm instance
         propKeys
           .filter(key => typeof props[key] !== 'function')
-          .forEach(key => {
-            instances[id].app.ports[key].send(props[key])
-          })
+          .forEach(key => sendData(key, props[key]))
 
-        // setup listeners from props
         propKeys
           .filter(key => typeof props[key] === 'function')
-          .forEach(key => {
-            addListener(id, key, props[key])
-          })
+          .forEach(key => addListener(key, props[key]))
 
-        // fix listeners
-        const { listeners } = instance
-        const listenerKeys = Object.keys(listeners)
-        // clean up props changing types (function -> !function)
-        listenerKeys.forEach(propKey => {
-          if (typeof props[propKey] !== 'function') {
-            delete listeners[propKey]
-          }
-        })
-        // clean up props changing types (function -> undefined)
-        listenerKeys.forEach(listenerKey => {
-          if (!propKeys.includes(listenerKey)) {
-            delete listeners[listenerKey]
-          }
-        })
+        clean(propKeys)
       }
     })
 
     // mount & cleanup
     React.useEffect(() => {
       // should only run once, setup instance
-      instances[id] = (() => {
-        const consumed = document.createElement('div')
-        if (!node.current) {
-          throw new Error(errors.missingRef)
-        }
-        node.current.appendChild(consumed)
+      const consumed = document.createElement('div')
+      if (!node.current) {
+        throw new Error(errors.missingRef)
+      }
+      node.current.appendChild(consumed)
 
-        if (!isElm(elm)) {
+      if (!isElm(elm)) {
+        throw new Error(errors.invalidElmInstance)
+      }
+
+      const elmModule = (() => {
+        let resolved = resolvePath(opts.path, elm.Elm)
+        if (resolved) { return resolved }
+        resolved = getOnlyModule(elm.Elm)
+        if (resolved) { return resolved }
+        if (opts.path) {
+          throw new Error(errors.invalidPath)
+        } else {
           throw new Error(errors.invalidElmInstance)
-        }
-
-        const elmModule = (() => {
-          let resolved = resolvePath(opts.path, elm.Elm)
-          if (resolved) { return resolved }
-          resolved = getOnlyModule(elm.Elm)
-          if (resolved) { return resolved }
-          if (opts.path) {
-            throw new Error(errors.invalidPath)
-          } else {
-            throw new Error(errors.invalidElmInstance)
-          }
-        })()
-
-        const app = elmModule.init({
-          node: consumed,
-        })
-
-        return {
-          app,
-          listeners: {},
-          subscriptions: [],
-          timing: 5,
         }
       })()
 
-      // setup inital ports
-      Object.keys(props).forEach(key => {
-        if (typeof props[key] === 'function') {
-          addListener(id, key, props[key])
-        } else {
-          sendData(id, key, props[key])
-        }
+      const app = elmModule.init({
+        node: consumed,
       })
 
+      createInstance(id, app)
+
       return () => {
-        // cleanup instance
-        delete instances[id]
+        teardown(id)
       }
     }, [])
 

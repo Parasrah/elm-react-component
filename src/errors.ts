@@ -55,6 +55,19 @@ const errors = {
   TODO: write error
   `,
 
+  missingInstance: `
+  TODO: write error
+  `,
+
+  missingPort (_: string) {
+    return `
+    TODO: write error
+    `
+  },
+
+  invalidProps: `
+  TODO: write error
+  `,
 }
 
 export default errors
