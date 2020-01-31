@@ -284,6 +284,12 @@ function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
   }
 }
 
-export { Elm, App, ElmInitArgs }
+export {
+  Elm,
+  ElmStep,
+  ElmModule,
+  App,
+  ElmInitArgs,
+}
 
 export default wrap
