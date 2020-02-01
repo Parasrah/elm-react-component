@@ -2,15 +2,22 @@
  * In keeping with Elm, we'd like to have high quality error messages
  */
 
+const libName = '@elm-react/component'
+
 type Anchor
   = 'install'
   | 'usage'
   | 'opts'
+  | 'opts-path'
   | 'perf'
   | 'assets'
   | 'cra'
+  | 'issues'
 
 function link (anchor?: Anchor) {
+  if (anchor === 'issues') {
+    return 'https://github.com/Parasrah/elm-react-component/issues'
+  }
   if (anchor) {
     return `https://github.com/Parasrah/elm-react-component#${anchor}`
   }
@@ -20,11 +27,22 @@ function link (anchor?: Anchor) {
 // we format these as javascript types, as it's more likely they are
 // familiar with js
 const common = {
+  wrapDefinition: 'wrap(elm: ElmInstance, opts?: Options)',
   missingOpt: 'It looks like some options are missing!',
   expectedOpt: `We expected your opts to look like this:
   {
     path?: string[]
   }`,
+  internalError (code: number) {
+    return `
+    ${libName} has experienced an internal error. please consider visiting
+    ${link('issues')} and opening an issue with the following format:
+
+    title: internal error: ${code}
+
+    description: <empty>
+    `
+  },
 }
 
 const errors = {
@@ -43,30 +61,54 @@ const errors = {
   check out the readme for more information: ${link()}
   `,
 
-  missingRef: `
-  TODO: write error
-  `,
+  missingRef: common.internalError(1),
 
   invalidElmInstance: `
-  TODO: write error
+  "wrap" expects the following arguments:
+
+  ${common.wrapDefinition}
+
+  The provided Elm instance does not match what we expected. Maybe you passed in
+  arguments in the wrong order?
+
+  You can view ${link('usage')} for help
   `,
 
   invalidPath: `
-  TODO: write error
+  The path provided to ${libName}#wrap could not be
+  resolved to an Elm module.
+
+  For more information, please read ${link('opts')}
   `,
 
-  missingInstance: `
-  TODO: write error
+  pathRequired: `
+  There seems to be multiple elm modules in the elm instance
+  passed to ${libName}#wrap
+
+  For more information, please read ${link('opts')}
   `,
 
-  missingPort (_: string) {
+  missingPort (name: string) {
     return `
-    TODO: write error
+    ${libName}: Unable to find a port for ${name}
+
+    Maybe you passed in a function for an incoming port,
+    or an object/primitive for an outgoing port?
+
+    For more information, please read ${link('usage')}
     `
   },
 
   invalidProps: `
-  TODO: write error
+  ${libName}: Elm components expect props to be an object
+  `,
+
+  invalidOpts: `
+  The provided opts to ${libName}#wrap did not match what we expected.
+
+  Please provide opts in the following format:
+
+  ${common.expectedOpt}
   `,
 }
 

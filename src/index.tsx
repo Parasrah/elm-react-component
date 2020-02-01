@@ -62,15 +62,14 @@ type Instances = Instance[]
 /* -------------- Type Guards -------------- */
 
 function isObject (test: any) : test is object {
-  if (test === null) return false
+  if (isUndefinedOrNull(test)) { return false }
   if (typeof test === 'function') return false
   if (typeof test !== 'object') return false
   return true
 }
 
 function isElmStep (test: any, key?: string): test is ElmStep {
-  if (typeof test === 'undefined') { return false }
-  if (test === null) { return false }
+  if (isUndefinedOrNull(test)) { return false }
   if (typeof test !== 'object') { return false }
   if (key === '') { return false }
   if (key) {
@@ -82,7 +81,7 @@ function isElmStep (test: any, key?: string): test is ElmStep {
 }
 
 function isElm (test: any): test is Elm {
-  if (test === null) { return false }
+  if (isUndefinedOrNull(test)) { return false }
   if (typeof test !== 'object') { return false }
   if (test.Elm === null) { return false }
   if (typeof test.Elm !== 'object') { return false }
@@ -90,11 +89,30 @@ function isElm (test: any): test is Elm {
 }
 
 function isElmModule (test: ElmModule | ElmStep): test is ElmModule {
-  if (test === null) { return false }
+  if (isUndefinedOrNull(test)) { return false }
   if (typeof test !== 'object') { return false }
   if (typeof test.init !== 'function') { return false }
   return true
 }
+
+function isTruthyString (test: any): test is string {
+  return (typeof test === 'string') && !!test.length
+}
+
+function isUndefinedOrNull (test: any): test is null | undefined {
+  return (test === null || typeof test === 'undefined')
+}
+
+function isOptions (options: Options) {
+  if (isUndefinedOrNull(options)) { return false }
+  if (typeof options !== 'object') { return false }
+  const { path } = options
+  if (!(isUndefinedOrNull(path) || (Array.isArray(path) && path.every(isTruthyString)))) {
+    return false
+  }
+  return true
+}
+
 /* ----------------- State ----------------- */
 
 const {
@@ -215,10 +233,20 @@ function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
   return resolve(path, step)
 }
 
+/* -------------- Implementation -------------- */
+
 function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
+  if (!isElm(elm)) {
+    throw new Error(errors.invalidElmInstance)
+  }
+
+  if (!isUndefinedOrNull(opts) && !isOptions(opts)) {
+    throw new Error(errors.invalidOpts)
+  }
+
   return function (props: Props) {
     if (!isObject(props)) {
-      throw new Error(`props must be of type "object", not ${typeof props}`)
+      throw new Error(errors.invalidProps)
     }
 
     const [id] = React.useState(getId())
@@ -253,20 +281,15 @@ function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
       }
       node.current.appendChild(consumed)
 
-      if (!isElm(elm)) {
-        throw new Error(errors.invalidElmInstance)
-      }
-
       const elmModule = (() => {
-        let resolved = resolvePath(opts.path, elm.Elm)
-        if (resolved) { return resolved }
-        resolved = getOnlyModule(elm.Elm)
-        if (resolved) { return resolved }
-        if (opts.path) {
+        if (opts.path?.length) {
+          const resolved = resolvePath(opts.path, elm.Elm)
+          if (resolved) { return resolved }
           throw new Error(errors.invalidPath)
-        } else {
-          throw new Error(errors.invalidElmInstance)
         }
+        const resolved = getOnlyModule(elm.Elm)
+        if (resolved) { return resolved }
+        throw new Error(errors.pathRequired)
       })()
 
       const app = elmModule.init({
@@ -275,9 +298,7 @@ function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
 
       createInstance(id, app)
 
-      return () => {
-        teardown(id)
-      }
+      return () => teardown(id)
     }, [])
 
     return <div ref={node} />

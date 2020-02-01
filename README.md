@@ -2,8 +2,7 @@
 
 # [@elm-react/component](#description)
 
-TODO: description
-TODO: note to read about Elm & React, include links to both
+The goal of this library is to make trying out Elm in your existing React code-base as easy as possible! After all most companies that decide to try Elm do so incrementally. Try it out!
 
 ## [Install](#install)
 
@@ -15,7 +14,7 @@ Using yarn:
 
 `yarn add @elm-react/component`
 
-### Setting up Elm & React
+## Setting up Elm & React
 
 This readme only covers the most common setup for Elm + React web projects. If your needs deviate from this, you should find the information you need on [the Elm website](https://elm-lang.org/).
 
@@ -74,9 +73,7 @@ port value : (Int -> msg) -> Sub msg
 
 port onChange : Int -> Cmd msg
 
-.
-.
-.
+...
 
 main : Program Flags Model Msg
 main =
@@ -96,6 +93,14 @@ The library will automatically convert React props to Elm ports:
 these functions are capable of receiving a single argument from the Elm element
 
 ### [Opts](#opts)
+
+[`path?: string[]`](#opts-path)
+
+`path` is only necessary when using an Elm instance containing multiple modules. This happens when you pass multiple Elm files to the compiler.
+
+Example:
+
+`module Page.Home` translates to the path: `['Page', 'Home']`
 
 ### [Complex Props](#complex-props)
 
@@ -133,11 +138,9 @@ Now you can access all values, with the added benefit of having an easier time w
 
 There is a drawback to having props automatically injected into an Elm element in that you have to be more aware of what is rendering your Elm components. For example, react-router injects props into every component it renders, which is probably not what you want. Currently the advice is to explicitly pass props to your Elm component. If this affects you and you have ideas on how to improve it, please feel free to open an issue with your ideas. 
 
-## [Performance](#perf)
-
 ## [Asset Size](#assets)
 
-Generally, Elm produces very small assets when compared to other frameworks (like React and Angular). Similar to those other frameworks though, it requires a runtime to operate. This is dealt with by the Elm compiler and isn't typically something you have to worry about, but in the case of using multiple `Browser.element`'s, it's easy to *accidentally bundle multiple instances of the Elm runtime into your app*. Luckily, it's also easy to avoid!
+Generally, Elm produces very small assets when compared to other frameworks (like React and Angular). Similar to those other frameworks though, it requires a runtime to operate. This is dealt with by the Elm compiler and isn't typically something you have to worry about, but in the case of using multiple `Browser.element`'s, it's easy to **accidentally bundle multiple instances of the Elm runtime into your app**. Luckily, it's also easy to avoid!
 
 ### With elm-webpack-loader
 
