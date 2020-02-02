@@ -59,10 +59,6 @@ interface Closure {
   clean: Clean
 }
 
-interface PropTypes {
-  [key: string]: any
-}
-
 type Instances = Instance[]
 
 /* -------------- Type Guards -------------- */
@@ -247,7 +243,7 @@ function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
 
 /* -------------- Implementation -------------- */
 
-function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
+function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
   if (!isElm(elm)) {
     throw new Error(errors.invalidElmInstance)
   }
@@ -299,12 +295,12 @@ function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
         const { addListener, sendData, clean } = getClosure(id)
         const propKeys = Object.keys(props)
         propKeys
-          .filter(key => typeof props[key] !== 'function')
-          .forEach(key => sendData(key, props[key]))
+          .filter(key => typeof (props as any)[key] !== 'function')
+          .forEach(key => sendData(key, (props as any)[key]))
 
         propKeys
-          .filter(key => typeof props[key] === 'function')
-          .forEach(key => addListener(key, props[key]))
+          .filter(key => typeof (props as any)[key] === 'function')
+          .forEach(key => addListener(key, (props as any)[key]))
 
         clean(propKeys)
       } else {
@@ -322,7 +318,6 @@ export {
   ElmModule,
   App,
   ElmInitArgs,
-  PropTypes,
 }
 
 export default wrap
