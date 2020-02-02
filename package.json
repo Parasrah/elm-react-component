@@ -12,7 +12,7 @@
     "build": "tsdx build",
     "test": "tsdx test --passWithNoTests --coverage=true -u",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
-    "prepare": "tsdx build"
+    "prepublishOnly": "tsdx build"
   },
   "peerDependencies": {
     "react": ">=16"
