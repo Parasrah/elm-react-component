@@ -47,10 +47,16 @@ interface Instance {
   timing: number
 }
 
+type AddListener = (name: string, listener: Listener) => void
+
+type SendData = (name: string, payload: any) => void
+
+type Clean = (currentProps: string[]) => void
+
 interface Closure {
-  sendData (name: string, payload: any): void
-  addListener (name: string, listener: Listener): void
-  clean (currentProps: string[]): void
+  sendData: AddListener
+  addListener: SendData
+  clean: Clean
 }
 
 interface PropTypes {
@@ -129,7 +135,7 @@ const {
     return {
       sendData (name: string, payload: any) {
         if (!app.ports[name]) {
-          console.error(errors.missingPort(name))
+          console.warn(errors.missingPort(name))
         } else {
           if (listeners[name]) {
             // we know this exists, because it was subscribed
@@ -140,13 +146,15 @@ const {
             // we just proved this exists
             app.ports[name].send!(payload)
           } else {
-            console.error(errors.missingPort(name))
+            console.warn(errors.missingPort(name))
           }
         }
       },
       addListener (name: string, listener: Listener) {
         if (!app.ports[name]?.subscribe) {
-          console.error(errors.missingPort(name))
+          console.warn(errors.missingPort(name))
+        } else if (listeners[name] === listener) {
+          // noop (same listener, don't resubscribe)
         } else {
           if (listeners[name]) {
             // we know this exists because it was subscribed
@@ -162,6 +170,7 @@ const {
           if (!currentProps.includes(name)) {
             // we know this exists because we subscribed
             app.ports[name].unsubscribe!(listeners[name])
+            delete listeners[name]
           }
         })
       },
@@ -172,14 +181,17 @@ const {
     getClosure (key: number) {
       return createClosure(instances[key])
     },
-    createInstance (id: number, app: App) {
+    createInstance (key: number, app: App) {
+      if (instances[key]) {
+        throw new Error(errors.duplicateInstance)
+      }
       const instance = {
         app,
         listeners: {},
         subscriptions: [],
         timing: 5,
       }
-      instances[id] = instance
+      instances[key] = instance
 
       return instance
     },
@@ -250,35 +262,15 @@ function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
     }
 
     const [id] = React.useState(getId())
-    const node = React.createRef<HTMLInputElement>()
-
-    // on update
-    React.useEffect(() => {
-      // handle if elm has been initialized already (not first run)
-      if (hasInstance(id)) {
-        const { addListener, sendData, clean } = getClosure(id)
-        const propKeys = Object.keys(props)
-
-        // send props data to elm instance
-        propKeys
-          .filter(key => typeof props[key] !== 'function')
-          .forEach(key => sendData(key, props[key]))
-
-        propKeys
-          .filter(key => typeof props[key] === 'function')
-          .forEach(key => addListener(key, props[key]))
-
-        clean(propKeys)
-      }
-    })
+    const node = React.useRef<HTMLDivElement>(null)
 
     // mount & cleanup
     React.useEffect(() => {
+      if (!node.current) {
+        return
+      }
       // should only run once, setup instance
       const consumed = document.createElement('div')
-      if (!node.current) {
-        throw new Error(errors.missingRef)
-      }
       node.current.appendChild(consumed)
 
       const elmModule = (() => {
@@ -299,7 +291,26 @@ function wrap <Props extends PropTypes> (elm: Elm, opts: Options = {}) {
       createInstance(id, app)
 
       return () => teardown(id)
-    }, [])
+    }, [node])
+
+    // on update
+    React.useEffect(() => {
+      if (hasInstance(id)) {
+        const { addListener, sendData, clean } = getClosure(id)
+        const propKeys = Object.keys(props)
+        propKeys
+          .filter(key => typeof props[key] !== 'function')
+          .forEach(key => sendData(key, props[key]))
+
+        propKeys
+          .filter(key => typeof props[key] === 'function')
+          .forEach(key => addListener(key, props[key]))
+
+        clean(propKeys)
+      } else {
+        console.error(errors.missingInstance)
+      }
+    })
 
     return <div ref={node} />
   }
@@ -311,6 +322,7 @@ export {
   ElmModule,
   App,
   ElmInitArgs,
+  PropTypes,
 }
 
 export default wrap

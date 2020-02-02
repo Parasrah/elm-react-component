@@ -1,7 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`component with no props renders successfully 1`] = `
-<div
-  id="f4477bd8-2979-4bfe-8266-0a410c10fd29"
-/>
-`;
+exports[`component outgoing ports (function props) on mount renders successfully 1`] = `<div />`;
+
+exports[`component with no ports on mount renders successfully 1`] = `<div />`;

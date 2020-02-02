@@ -47,6 +47,12 @@ const common = {
 
 const errors = {
 
+  missingRef: common.internalError(1),
+
+  duplicateInstance: common.internalError(2),
+
+  missingInstance: common.internalError(3),
+
   missingPath: `
   ${common.missingOpt}
 
@@ -60,8 +66,6 @@ const errors = {
 
   check out the readme for more information: ${link()}
   `,
-
-  missingRef: common.internalError(1),
 
   invalidElmInstance: `
   "wrap" expects the following arguments:

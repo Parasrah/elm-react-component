@@ -11,6 +11,8 @@ interface ModuleInit extends AppInit {
   path: string[]
 }
 
+const AppAccessor = Symbol('app test accessor')
+
 function createMock (moduleArgs: ModuleInit[]): Elm {
   const main: Elm = {
     // we explicitly cast to ElmStep because we want to be able to pass in an elm
@@ -50,8 +52,9 @@ function createApp ({ incoming, outgoing }: AppInit): App {
 
 function createModule ({ path, outgoing, incoming }: ModuleInit): ElmStep | ElmModule {
   if (!path.length) {
+    const app = createApp({ outgoing, incoming })
     return {
-      init: jest.fn().mockReturnValue(createApp({ outgoing, incoming })),
+      init: jest.fn().mockReturnValue(app),
     }
   }
 
@@ -61,6 +64,6 @@ function createModule ({ path, outgoing, incoming }: ModuleInit): ElmStep | ElmM
   }
 }
 
-export { ModuleInit }
+export { ModuleInit, AppAccessor, App }
 
 export default createMock
