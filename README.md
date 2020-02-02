@@ -146,10 +146,16 @@ Generally, Elm produces very small assets when compared to other frameworks (lik
 
 ### With elm-webpack-loader
 
-TODO: update w/ code from rescripts-elm to automatically pull in elm files, or if unable to do so instruct users on how to do themselves
+[elm-webpack-loader](https://github.com/elm-community/elm-webpack-loader) documents how to bundle multiple modules with the same Elm runtime [here](https://github.com/elm-community/elm-webpack-loader#files-default---path-to-required-file).
 
 ### With CRA
 
 There is currently [an issue](https://github.com/Parasrah/rescripts-elm/issues/3) open on the `@elm-react/rescripts-elm` package to deal with this problem.
 
 ## [Create React App](#cra)
+
+Create React App (CRA) abstracts the configuration away from the user. This is great when you don't have the time or knowledge to maintain a react configuration, but it results in roadblocks when you want to customize behaviour yourself.
+
+Fortunately, [@rescripts/cli](https://github.com/harrysolovay/rescripts) alleviates this difficulty to some extent. And paired with [@elm-react/rescripts-elm](https://github.com/Parasrah/rescripts-elm), it's actually quite easy to get started with Elm in a CRA project.
+
+> You can see an example of this in action [here](https://github.com/Parasrah/elm-react-component/tree/master/example#example)

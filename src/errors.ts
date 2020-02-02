@@ -13,6 +13,7 @@ type Anchor
   | 'assets'
   | 'cra'
   | 'issues'
+  | 'pitfalls'
 
 function link (anchor?: Anchor) {
   if (anchor === 'issues') {
@@ -99,7 +100,14 @@ const errors = {
     Maybe you passed in a function for an incoming port,
     or an object/primitive for an outgoing port?
 
-    For more information, please read ${link('usage')}
+    For more information, please read:
+
+    ${link('usage')}
+
+    It's also possible an unforseen prop is being passed
+    into the elm component. You can read more here:
+
+    ${link('pitfalls')}
     `
   },
 
