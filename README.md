@@ -4,6 +4,8 @@
 
 The goal of this library is to make trying out Elm in your existing React code-base as easy as possible! After all most companies that decide to try Elm do so incrementally. Try it out!
 
+> If you're looking for a library with more explicit control over ports, check out [react-elm-components](https://github.com/cultureamp/react-elm-components).
+
 ## [Install](#install)
 
 Using npm:
