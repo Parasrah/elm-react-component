@@ -1,4 +1,4 @@
-![](https://badge.fury.io/js/%40elm-react%2Fcomponent.svg) ![](https://david-dm.org/parasrah/elm-react-component.svg) ![](https://github.com/parasrah/elm-react-component/workflows/tests/badge.svg)
+![](https://badge.fury.io/js/%40elm-react%2Fcomponent.svg) [![Coverage Status](https://coveralls.io/repos/github/Parasrah/elm-react-component/badge.svg?branch=improvements)](https://coveralls.io/github/Parasrah/elm-react-component?branch=improvements) ![](https://david-dm.org/parasrah/elm-react-component.svg) ![](https://github.com/parasrah/elm-react-component/workflows/tests/badge.svg)
 
 # [@elm-react/component](#description)
 
