@@ -20,11 +20,17 @@ Using yarn:
 
 This readme only covers the most common setup for Elm + React web projects. If your needs deviate from this, you should find the information you need on [the Elm website](https://elm-lang.org/).
 
+### Webpack
+
 > Regardless of which method you choose, please visit the [Assets](#asset-size) section of the readme to ensure you are only bundling a single Elm runtime in your application.
 
 Adding Elm to your existing webpack configuration is fairly easy through the use of [elm-webpack-loader](https://github.com/elm-community/elm-webpack-loader), which has instructions to set it up [here](https://github.com/elm-community/elm-webpack-loader#elm-loader---). After you've set this up, you should be able to import Elm modules as seen below.
 
 If instead you are using Create React App (which significantly limits configurability), you can visit [the CRA example](example#example) in this repo which should guide you through that process.
+
+### Parcel
+
+Although Webpack is the most well known file bundler, [Parcel](https://parceljs.org/) is a great alternative, especially if you're using Elm! Converting your existing webpack configuration is often just a matter of deleting all of your webpack configuration files and packages, installing parcel instead and changing your npm scripts. It supports Elm, React and many other common tooling with no configuration. Best of all, there are [plans with Parcel 2.0](https://github.com/parcel-bundler/parcel/issues/3351) to potentially resolve the [assets issue](#asset-size)!
 
 ## Usage
 
@@ -151,6 +157,10 @@ Generally, Elm produces very small assets when compared to other frameworks (lik
 ### With CRA
 
 There is currently [an issue](https://github.com/Parasrah/rescripts-elm/issues/3) open on the `@elm-react/rescripts-elm` package to deal with this problem.
+
+### With Parcel
+
+There is currently [an issue](https://github.com/parcel-bundler/parcel/issues/2508) open on the `[parcel]`(https://github.com/parcel-bundler/parcel) package to resolve this issue.
 
 ## Create React App
 
