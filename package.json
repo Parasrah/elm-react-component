@@ -1,6 +1,6 @@
 {
   "name": "@elm-react/component",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -16,6 +16,10 @@
   },
   "peerDependencies": {
     "react": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Parasrah/elm-react-component.git"
   },
   "author": "parasrah",
   "module": "dist/react-elm-component.esm.js",
