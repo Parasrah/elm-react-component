@@ -96,7 +96,7 @@ these functions are capable of receiving a single argument from the Elm element
 
 ### [Opts](#opts)
 
-[`path?: string[]`](#opts-path)
+> [`path?: string[]`](#opts-path)
 
 `path` is only necessary when using an Elm instance containing multiple modules. This happens when you pass multiple Elm files to the compiler.
 
