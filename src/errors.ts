@@ -8,12 +8,13 @@ type Anchor
   = 'install'
   | 'usage'
   | 'opts'
-  | 'opts-path'
-  | 'perf'
-  | 'assets'
-  | 'cra'
+  | 'complex-props'
+  | 'common-pitfalls'
+  | 'asset-size'
+  | 'with-elm-webpack-loader'
+  | 'with-cra'
+  | 'create-react-app'
   | 'issues'
-  | 'pitfalls'
 
 function link (anchor?: Anchor) {
   if (anchor === 'issues') {
@@ -107,7 +108,7 @@ const errors = {
     It's also possible an unforseen prop is being passed
     into the elm component. You can read more here:
 
-    ${link('pitfalls')}
+    ${link('common-pitfalls')}
     `
   },
 

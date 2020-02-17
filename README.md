@@ -20,7 +20,7 @@ Using yarn:
 
 This readme only covers the most common setup for Elm + React web projects. If your needs deviate from this, you should find the information you need on [the Elm website](https://elm-lang.org/).
 
-> Regardless of which method you choose, please visit the [Assets](README.md/#assets) section of the readme to ensure you are only bundling a single Elm runtime in your application.
+> Regardless of which method you choose, please visit the [Assets](#asset-size) section of the readme to ensure you are only bundling a single Elm runtime in your application.
 
 Adding Elm to your existing webpack configuration is fairly easy through the use of [elm-webpack-loader](https://github.com/elm-community/elm-webpack-loader), which has instructions to set it up [here](https://github.com/elm-community/elm-webpack-loader#elm-loader---). After you've set this up, you should be able to import Elm modules as seen below.
 
@@ -100,9 +100,9 @@ these functions are capable of receiving a single argument from the Elm element
 
 `path` is only necessary when using an Elm instance containing multiple modules. This happens when you pass multiple Elm files to the compiler.
 
-Example:
-
-`module Page.Home` translates to the path: `['Page', 'Home']`
+> Example:
+>
+> `module Page.Home` translates to the path: `['Page', 'Home']`
 
 ### Complex Props
 
