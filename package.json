@@ -1,6 +1,6 @@
 {
   "name": "@elm-react/component",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -21,6 +21,14 @@
     "type": "git",
     "url": "https://github.com/Parasrah/elm-react-component.git"
   },
+  "keywords": [
+    "elm",
+    "react",
+    "interop",
+    "component",
+    "javascript",
+    "typescript"
+  ],
   "author": "parasrah",
   "module": "dist/react-elm-component.esm.js",
   "devDependencies": {
