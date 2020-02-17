@@ -1,4 +1,4 @@
-# [Example](#example)
+# Example
 
 While this example is specifically targeting CRA users due to the added complexity, there is useful information here regardless of your setup.
 
@@ -32,4 +32,4 @@ update your `package.json`:
 
 ```
 
-From here you should be able to follow the [guide](https://github.com/Parasrah/elm-react-component#description) for this library! Enjoy using Elm! And be sure to check out the [guide](https://guide.elm-lang.org/) if you're new!
+From here you should be able to follow the [guide](https://github.com/Parasrah/elm-react-component#elm-reactcomponent) for this library! Enjoy using Elm! And be sure to check out the [Elm guide](https://guide.elm-lang.org/) if you're new!
