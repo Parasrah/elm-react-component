@@ -20,9 +20,9 @@ Using yarn:
 
 This readme only covers the most common setup for Elm + React web projects. If your needs deviate from this, you should find the information you need on [the Elm website](https://elm-lang.org/).
 
-> Regardless of which method you choose, please visit the [Assets](#assets) section of the readme to ensure you are only bundling a single Elm runtime in your application.
+> Regardless of which method you choose, please visit the [Assets](README.md/#assets) section of the readme to ensure you are only bundling a single Elm runtime in your application.
 
-Adding Elm to your existing webpack configuration is fairly easy through the use of [elm-webpack-loader](https://github.com/elm-community/elm-webpack-loader), which has instructions to set it up [here](https://github.com/elm-community/elm-webpack-loader#elm-loader---). After you've set this up, you should be able to import Elm modules as seen in the [description](#description) above.
+Adding Elm to your existing webpack configuration is fairly easy through the use of [elm-webpack-loader](https://github.com/elm-community/elm-webpack-loader), which has instructions to set it up [here](https://github.com/elm-community/elm-webpack-loader#elm-loader---). After you've set this up, you should be able to import Elm modules as seen below.
 
 If instead you are using Create React App (which significantly limits configurability), you can visit [the CRA example](example#example) in this repo which should guide you through that process.
 

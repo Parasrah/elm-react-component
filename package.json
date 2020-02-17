@@ -17,6 +17,10 @@
   "peerDependencies": {
     "react": ">=16"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Parasrah/elm-react-component.git"
+  },
   "author": "parasrah",
   "module": "dist/react-elm-component.esm.js",
   "devDependencies": {
