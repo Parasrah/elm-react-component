@@ -160,7 +160,7 @@ There is currently [an issue](https://github.com/Parasrah/rescripts-elm/issues/3
 
 ### With Parcel
 
-There is currently [an issue](https://github.com/parcel-bundler/parcel/issues/2508) open on the `[parcel]`(https://github.com/parcel-bundler/parcel) package to resolve this issue.
+There is currently [an issue](https://github.com/parcel-bundler/parcel/issues/2508) open on the [`parcel`](https://github.com/parcel-bundler/parcel) package to resolve this issue.
 
 ## Create React App
 
