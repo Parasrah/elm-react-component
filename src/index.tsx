@@ -32,7 +32,8 @@ interface App {
 }
 
 interface ElmInitArgs {
-  node: HTMLDivElement
+  node: HTMLDivElement,
+  flags: Object
 }
 
 type Listener = (...data: any[]) => void
@@ -282,6 +283,13 @@ function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
 
       const app = elmModule.init({
         node: consumed,
+        flags: (() => {
+          let flags = {}
+          for (const prop in props) {
+            if (typeof (props as any)[prop] !== 'function') { (flags as any)[prop] = (props as any)[prop] }
+          }
+          return flags
+        })(),
       })
 
       createInstance(id, app)
