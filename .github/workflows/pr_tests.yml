@@ -1,12 +1,9 @@
-name: tests
+name: pr_tests
 
-on:
-  push:
-    branches:
-      - master
+on: [pull_request]
 
 jobs:
-  test_with_coverage:
+  simple_test:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +18,3 @@ jobs:
     - run: npm test
       env:
         CI: true
-    - name: Coveralls GitHub Action
-      uses: coverallsapp/github-action@v1.0.1
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
