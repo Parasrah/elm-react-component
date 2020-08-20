@@ -284,7 +284,7 @@ function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
       const app = elmModule.init({
         node: consumed,
         flags: (() => {
-          let flags = {}
+          const flags = {}
           for (const prop in props) {
             if (typeof (props as any)[prop] !== 'function') { (flags as any)[prop] = (props as any)[prop] }
           }
