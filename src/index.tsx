@@ -33,6 +33,7 @@ interface App {
 
 interface ElmInitArgs {
   node: HTMLDivElement
+  flags: Flags
 }
 
 type Listener = (...data: any[]) => void
@@ -61,12 +62,28 @@ interface Closure {
 
 type Instances = Instance[]
 
+type Flags = Record<string, any>
+
+interface WithFlags {
+  flags: Flags
+}
+
+interface UnknownObject {
+  [key: string]: unknown
+}
+
 /* -------------- Type Guards -------------- */
 
-function isObject (test: any) : test is object {
+function isObject (test: any) : test is UnknownObject {
   if (isUndefinedOrNull(test)) { return false }
   if (typeof test === 'function') return false
   if (typeof test !== 'object') return false
+  return true
+}
+
+function hasFlags (test: unknown) : test is WithFlags {
+  if (!isObject(test)) { return false }
+  if (!isObject(test.flags)) { return false }
   return true
 }
 
@@ -241,6 +258,14 @@ function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
   return resolve(path, step)
 }
 
+function extractFlags <Props extends {}> (props: Props) {
+  if (hasFlags(props)) {
+    const { flags, ...rest } = props
+    return { flags, props: rest }
+  }
+  return { flags: {}, props }
+}
+
 /* -------------- Implementation -------------- */
 
 function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
@@ -252,10 +277,12 @@ function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
     throw new Error(errors.invalidOpts)
   }
 
-  return function (props: Props) {
-    if (!isObject(props)) {
+  return function (baseProps: Props) {
+    if (!isObject(baseProps)) {
       throw new Error(errors.invalidProps)
     }
+
+    const { props, flags } = extractFlags(baseProps)
 
     const [id] = React.useState(getId())
     const node = React.useRef<HTMLDivElement>(null)
@@ -281,6 +308,7 @@ function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
       })()
 
       const app = elmModule.init({
+        flags,
         node: consumed,
       })
 
