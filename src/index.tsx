@@ -4,6 +4,8 @@ import errors from './errors'
 
 /* ----------------- Types ----------------- */
 
+type Props = UnknownObject
+
 interface Elm {
   Elm: ElmStep
 }
@@ -64,10 +66,6 @@ type Instances = Instance[]
 
 type Flags = Record<string, any>
 
-interface WithFlags {
-  flags: Flags
-}
-
 interface UnknownObject {
   [key: string]: unknown
 }
@@ -78,12 +76,6 @@ function isObject (test: any) : test is UnknownObject {
   if (isUndefinedOrNull(test)) { return false }
   if (typeof test === 'function') return false
   if (typeof test !== 'object') return false
-  return true
-}
-
-function hasFlags (test: unknown) : test is WithFlags {
-  if (!isObject(test)) { return false }
-  if (!isObject(test.flags)) { return false }
   return true
 }
 
@@ -147,7 +139,8 @@ const {
   function createClosure ({ listeners, app }: Instance): Closure {
     return {
       sendData (name: string, payload: any) {
-        if (!app.ports[name]) {
+        const isFlagOnly = name.endsWith('Flag')
+        if (!app.ports[name] && !isFlagOnly) {
           console.warn(errors.missingPort(name))
         } else {
           if (listeners[name]) {
@@ -156,9 +149,12 @@ const {
             delete listeners[name]
           }
           if (app.ports[name]?.send) {
+            if (isFlagOnly) {
+              console.warn(errors.flagHasPort(name))
+            }
             // we just proved this exists
             app.ports[name].send!(payload)
-          } else {
+          } else if (!isFlagOnly) {
             console.warn(errors.missingPort(name))
           }
         }
@@ -258,17 +254,9 @@ function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
   return resolve(path, step)
 }
 
-function extractFlags <Props extends {}> (props: Props) {
-  if (hasFlags(props)) {
-    const { flags, ...rest } = props
-    return { flags, props: rest }
-  }
-  return { flags: {}, props }
-}
-
 /* -------------- Implementation -------------- */
 
-function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
+function wrap (elm: Elm, opts: Options = {}) {
   if (!isElm(elm)) {
     throw new Error(errors.invalidElmInstance)
   }
@@ -277,12 +265,10 @@ function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
     throw new Error(errors.invalidOpts)
   }
 
-  return function (baseProps: Props) {
-    if (!isObject(baseProps)) {
+  return function (props: Props) {
+    if (!isObject(props)) {
       throw new Error(errors.invalidProps)
     }
-
-    const { props, flags } = extractFlags(baseProps)
 
     const [id] = React.useState(getId())
     const node = React.useRef<HTMLDivElement>(null)
@@ -306,6 +292,11 @@ function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
         if (resolved) { return resolved }
         throw new Error(errors.pathRequired)
       })()
+
+      const flags = Object.keys(props)
+        .map((key) => ({ key, value: props[key] }))
+        .filter(({ value }) => typeof value !== 'function')
+        .reduce((agg, { key, value }) => ({ ...agg, [key]: value }), {})
 
       const app = elmModule.init({
         flags,

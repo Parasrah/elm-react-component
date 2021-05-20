@@ -10,6 +10,7 @@ function App() {
       <Counter
         className="counter"
         value={count}
+        messageFlag="Try it out!"
         onChange={(change) => setCount(count + change)}
       />
     </div>

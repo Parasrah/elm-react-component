@@ -1,10 +1,12 @@
 port module Counter exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, button, div, span, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Json.Encode as E
+import Json.Decode as D exposing (Decoder)
+import Json.Decode.Pipeline exposing (required)
+import Json.Encode as E exposing (Value)
 
 
 
@@ -21,23 +23,47 @@ port onChange : Int -> Cmd msg
 
 
 
+-- Flags (initialization)
+
+
+type alias Flags =
+    { value : Int
+    , messageFlag : String
+    }
+
+
+flagsDecoder : Decoder Flags
+flagsDecoder =
+    D.succeed Flags
+        |> required "value" D.int
+        |> required "messageFlag" D.string
+
+
+defaultFlags : Flags
+defaultFlags =
+    { value = 0, messageFlag = "failed to parse flags" }
+
+
+
 -- Model
 
 
 type alias Model =
     { class : String
     , value : Int
+    , message : String
     }
 
 
-type alias Flags =
-    {}
-
-
-init : Flags -> ( Model, Cmd Msg )
-init _ =
+init : Value -> ( Model, Cmd Msg )
+init flagsJson =
+    let
+        flags =
+            D.decodeValue flagsDecoder flagsJson |> Result.withDefault defaultFlags
+    in
     ( { class = ""
-      , value = 0
+      , value = flags.value
+      , message = flags.messageFlag
       }
     , Cmd.none
     )
@@ -102,17 +128,20 @@ view : Model -> Html Msg
 view model =
     div
         [ class model.class ]
-        [ button
-            [ onClick Decrement ]
-            [ text "-" ]
-        , text <| String.fromInt model.value
-        , button
-            [ onClick Increment ]
-            [ text "+" ]
+        [ div []
+            [ button
+                [ onClick Decrement ]
+                [ text "-" ]
+            , text <| String.fromInt model.value
+            , button
+                [ onClick Increment ]
+                [ text "+" ]
+            ]
+        , span [] [ text model.message ]
         ]
 
 
-main : Program Flags Model Msg
+main : Program Value Model Msg
 main =
     Browser.element
         { view = view

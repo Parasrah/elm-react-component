@@ -98,8 +98,11 @@ const errors = {
     return `
     ${libName}: Unable to find a port for ${name}
 
-    Maybe you passed in a function for an incoming port,
-    or an object/primitive for an outgoing port?
+    If you intended to use this as a flag with no port,
+    please rename to ${name}Flag to disable this warning.
+
+    Otherwise, maybe you passed in a function for an incoming
+    port, or an object/primitive for an outgoing port?
 
     For more information, please read:
 
@@ -109,6 +112,22 @@ const errors = {
     into the elm component. You can read more here:
 
     ${link('common-pitfalls')}
+    `
+  },
+
+  flagHasPort (name: string) {
+    return `
+    ${libName}: Found port for ${name}
+
+    You are seeing this message because the prop ${name}
+    ends with "Flag". This library uses this as an
+    indicator that a prop should be a flag only, please
+    remove the "Flag" suffix from the prop name if you
+    wish to have ports for the prop.
+
+    For more information, please read:
+
+    ${link('usage')}
     `
   },
 
