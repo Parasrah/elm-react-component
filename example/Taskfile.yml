@@ -1,0 +1,10 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  run:
+    cmds:
+      - ./node_modules/.bin/rescripts start
+    env:
+      SKIP_PREFLIGHT_CHECK: true
