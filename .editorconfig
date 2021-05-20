@@ -5,6 +5,6 @@ charset = utf-8
 trim_trailing_whitespace = false
 insert_final_newline = false
 
-[*.{ts,tsx,js,jsx,json,yml}]
+[*.{ts,tsx,js,jsx,json,yml,nix}]
 indent_style = space
 indent_size = 2

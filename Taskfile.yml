@@ -1,0 +1,31 @@
+# https://taskfile.dev
+
+version: '3'
+
+includes:
+  example:
+    taskfile: ./example
+    dir: ./example
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    cmds:
+      - ./node_modules/.bin/tsdx build
+
+  test:
+    cmds:
+      - ./node_modules/.bin/tsdx test --coverage=true -u
+    env:
+      NODE_ENV: test
+
+  lint:
+    cmds:
+      - ./node_modules/.bin/eslint "**/*.{js,jsx,ts,tsx}"
+
+  run:
+    cmds:
+      - task: example:run
