@@ -4,6 +4,8 @@ import errors from './errors'
 
 /* ----------------- Types ----------------- */
 
+type Props = UnknownObject
+
 interface Elm {
   Elm: ElmStep
 }
@@ -33,6 +35,7 @@ interface App {
 
 interface ElmInitArgs {
   node: HTMLDivElement
+  flags: Flags
 }
 
 type Listener = (...data: any[]) => void
@@ -61,9 +64,15 @@ interface Closure {
 
 type Instances = Instance[]
 
+type Flags = Record<string, any>
+
+interface UnknownObject {
+  [key: string]: unknown
+}
+
 /* -------------- Type Guards -------------- */
 
-function isObject (test: any) : test is object {
+function isObject (test: any) : test is UnknownObject {
   if (isUndefinedOrNull(test)) { return false }
   if (typeof test === 'function') return false
   if (typeof test !== 'object') return false
@@ -130,7 +139,8 @@ const {
   function createClosure ({ listeners, app }: Instance): Closure {
     return {
       sendData (name: string, payload: any) {
-        if (!app.ports[name]) {
+        const isFlagOnly = name.endsWith('Flag')
+        if (!app.ports[name] && !isFlagOnly) {
           console.warn(errors.missingPort(name))
         } else {
           if (listeners[name]) {
@@ -139,9 +149,12 @@ const {
             delete listeners[name]
           }
           if (app.ports[name]?.send) {
+            if (isFlagOnly) {
+              console.warn(errors.flagHasPort(name))
+            }
             // we just proved this exists
             app.ports[name].send!(payload)
-          } else {
+          } else if (!isFlagOnly) {
             console.warn(errors.missingPort(name))
           }
         }
@@ -243,7 +256,7 @@ function resolvePath (path: string[] = [], step: ElmStep): false | ElmModule {
 
 /* -------------- Implementation -------------- */
 
-function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
+function wrap (elm: Elm, opts: Options = {}) {
   if (!isElm(elm)) {
     throw new Error(errors.invalidElmInstance)
   }
@@ -280,7 +293,13 @@ function wrap <Props extends {} = {}> (elm: Elm, opts: Options = {}) {
         throw new Error(errors.pathRequired)
       })()
 
+      const flags = Object.keys(props)
+        .map((key) => ({ key, value: props[key] }))
+        .filter(({ value }) => typeof value !== 'function')
+        .reduce((agg, { key, value }) => ({ ...agg, [key]: value }), {})
+
       const app = elmModule.init({
+        flags,
         node: consumed,
       })
 

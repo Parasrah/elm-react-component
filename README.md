@@ -142,13 +142,44 @@ export default () => (
 
 Now you can access all values, with the added benefit of having an easier time writing the decoder for the port.
 
+### Flags
+
+In React, props are used for both initialization and updates. This is not
+the case in Elm interop, which uses Flags for initialization and Ports
+for update.
+
+All props that would be converted to incoming ports (i.e. props that are
+not functions) will also be passed into the Elm component as flags. This
+way if you do need to initialize your Elm component, you can access the
+props via flags as well. You can see any example of this in `/example`.
+
+If you wish to have a prop that is only used for initialization (i.e. you
+don't wish to define any ports for it), use the suffix `Flag` for the prop
+name. For example, if you have a prop named `version` with no ports,
+this library will warn you about the missing ports. If you change the name
+to `versionFlag`, the warning will go away.
+
+Vice versa, if you have a prop named `versionFlag` that you decide you want
+to define ports for, remove the `Flag` suffix. Otherwise the library will
+again warn you that you have defined ports for a "flag only" prop.
+
 ### Common Pitfalls
 
-There is a drawback to having props automatically injected into an Elm element in that you have to be more aware of what is rendering your Elm components. For example, react-router injects props into every component it renders, which is probably not what you want. Currently the advice is to explicitly pass props to your Elm component. If this affects you and you have ideas on how to improve it, please feel free to open an issue with your ideas. 
+There is a drawback to having props automatically injected into an Elm
+element in that you have to be more aware of what is rendering your Elm
+components. For example, react-router injects props into every component
+it renders, which is probably not what you want. Currently the advice is to
+explicitly pass props to your Elm component. If this affects you and you have
+ideas on how to improve it, please feel free to open an issue with your ideas.
 
 ## Asset Size
 
-Generally, Elm produces very small assets when compared to other frameworks (like React and Angular). Similar to those other frameworks though, it requires a runtime to operate. This is dealt with by the Elm compiler and isn't typically something you have to worry about, but in the case of using multiple `Browser.element`'s, it's easy to **accidentally bundle multiple instances of the Elm runtime into your app**. Luckily, it's also easy to avoid!
+Generally, Elm produces very small assets when compared to other frameworks
+(like React and Angular). Similar to those other frameworks though, it
+requires a runtime to operate. This is dealt with by the Elm compiler and
+isn't typically something you have to worry about, but in the case of using
+multiple `Browser.element`'s, it's easy to **accidentally bundle multiple
+instances of the Elm runtime into your app**. Luckily, it's also easy to avoid!
 
 ### With elm-webpack-loader
 
