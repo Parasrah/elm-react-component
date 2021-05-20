@@ -96,6 +96,7 @@ function testIncomingPorts (createElm: CreateElm, createStep: CreateStepInit) {
 
     const app = mod?.init({
       node: ({} as HTMLInputElement),
+      flags: {},
     })
 
     expect(app?.ports).toBeTruthy()
@@ -108,6 +109,7 @@ function testIncomingPorts (createElm: CreateElm, createStep: CreateStepInit) {
 
     const app = mod?.init({
       node: ({} as HTMLInputElement),
+      flags: {},
     })
 
     expect(app?.ports).toBeTruthy()
@@ -120,6 +122,7 @@ function testIncomingPorts (createElm: CreateElm, createStep: CreateStepInit) {
 
     const app = mod?.init({
       node: ({} as HTMLInputElement),
+      flags: {},
     })
 
     expect(app?.ports).toBeTruthy()
@@ -150,6 +153,7 @@ function testOutgoingPorts (createElm: CreateElm, createStep: CreateStepInit) {
 
     const app = mod?.init({
       node: ({} as HTMLInputElement),
+      flags: {},
     })
 
     expect(app?.ports).toBeTruthy()
@@ -162,6 +166,7 @@ function testOutgoingPorts (createElm: CreateElm, createStep: CreateStepInit) {
 
     const app = mod?.init({
       node: ({} as HTMLInputElement),
+      flags: {},
     })
 
     expect(app?.ports).toBeTruthy()
@@ -174,6 +179,7 @@ function testOutgoingPorts (createElm: CreateElm, createStep: CreateStepInit) {
 
     const app = mod?.init({
       node: ({} as HTMLInputElement),
+      flags: {},
     })
 
     expect(app?.ports).toBeTruthy()
