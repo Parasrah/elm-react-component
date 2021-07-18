@@ -1,3 +1,4 @@
+---
 # https://taskfile.dev
 
 version: '3'
@@ -9,23 +10,28 @@ includes:
 
 tasks:
   default:
+    desc: build project
     cmds:
       - task: build
 
   build:
+    desc: build project
     cmds:
       - ./node_modules/.bin/tsdx build
 
   test:
+    desc: test project
     cmds:
       - ./node_modules/.bin/tsdx test --coverage=true -u
     env:
       NODE_ENV: test
 
   lint:
+    desc: lint project
     cmds:
       - ./node_modules/.bin/eslint "**/*.{js,jsx,ts,tsx}"
 
   run:
+    desc: run example
     cmds:
       - task: example:run
