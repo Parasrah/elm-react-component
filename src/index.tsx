@@ -140,7 +140,7 @@ const {
     return {
       sendData (name: string, payload: any) {
         const isFlagOnly = name.endsWith('Flag')
-        if (!app.ports[name] && !isFlagOnly) {
+        if (app.ports && !app.ports[name] && !isFlagOnly) {
           console.warn(errors.missingPort(name))
         } else {
           if (listeners[name]) {
@@ -148,7 +148,7 @@ const {
             app.ports[name].unsubscribe!(listeners[name])
             delete listeners[name]
           }
-          if (app.ports[name]?.send) {
+          if (app.ports && app.ports[name]?.send) {
             if (isFlagOnly) {
               console.warn(errors.flagHasPort(name))
             }
