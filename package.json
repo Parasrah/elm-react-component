@@ -30,7 +30,7 @@
     "typescript"
   ],
   "author": "parasrah",
-  "module": "dist/react-elm-component.esm.js",
+  "module": "dist/component.esm.js",
   "devDependencies": {
     "@testing-library/react": "^11.2.7",
     "@types/jest": "^26.0.23",
